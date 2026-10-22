@@ -9,6 +9,15 @@ correcting baseline defects, calibration confounds, and protocol errors, only on
 survives (usage weighting), and three preregistered rule-switching experiments show no
 adaptation advantage of compartmentalized routing at any cue-conflict intensity.
 
+## Citation
+
+If you use this code or refer to the audit, please cite the preprint:
+
+> Zhou, R. (2026). *Where Do the Gains Come From? An Audit of Dendritic Context-Gated
+> Protection for Continual Learning*. Zenodo. <https://doi.org/10.5281/zenodo.23572226>
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23572226.svg)](https://doi.org/10.5281/zenodo.23572226)
+
 ## Layout
 
 | Directory | Contents | Paper section |
