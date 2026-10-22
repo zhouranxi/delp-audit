@@ -1,0 +1,20 @@
+{
+ "lam_rule": "val",
+ "sweep": {},
+ "main": {
+  "ewc|5": [
+   {
+    "stage": "main",
+    "arm": "ewc",
+    "ntask": 5,
+    "seed": 1,
+    "lam": 10.0,
+    "bwt": -11.94,
+    "final_avg": 56.11,
+    "val_bwt": -10.13,
+    "val_final_avg": 57.09
+   }
+  ]
+ },
+ "elapsed": 10.7
+}

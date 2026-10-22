@@ -1,0 +1,97 @@
+{
+ "lam_rule": "val",
+ "sweep": {
+  "si_new@0.1": [
+   {
+    "stage": "sweep",
+    "arm": "si_new",
+    "ntask": 5,
+    "seed": 0,
+    "lam": 0.1,
+    "bwt": -10.83,
+    "final_avg": 59.24,
+    "val_bwt": -10.6,
+    "val_final_avg": 59.62
+   }
+  ],
+  "si_new@100.0": [
+   {
+    "stage": "sweep",
+    "arm": "si_new",
+    "ntask": 5,
+    "seed": 1,
+    "lam": 100.0,
+    "bwt": -3.78,
+    "final_avg": 31.93,
+    "val_bwt": -3.82,
+    "val_final_avg": 31.34
+   }
+  ],
+  "mas_new@0.1": [
+   {
+    "stage": "sweep",
+    "arm": "mas_new",
+    "ntask": 5,
+    "seed": 0,
+    "lam": 0.1,
+    "bwt": -11.51,
+    "final_avg": 58.43,
+    "val_bwt": -11.11,
+    "val_final_avg": 59.04
+   }
+  ],
+  "mas_new@100.0": [
+   {
+    "stage": "sweep",
+    "arm": "mas_new",
+    "ntask": 5,
+    "seed": 1,
+    "lam": 100.0,
+    "bwt": -15.06,
+    "final_avg": 38.04,
+    "val_bwt": -14.97,
+    "val_final_avg": 37.41
+   }
+  ],
+  "ours@100.0": [
+   {
+    "stage": "sweep",
+    "arm": "ours",
+    "ntask": 5,
+    "seed": 1,
+    "lam": 100.0,
+    "bwt": -7.6,
+    "final_avg": 67.29,
+    "acc_matrix": [
+     [
+      74.07
+     ],
+     [
+      63.13,
+      73.21
+     ],
+     [
+      58.7,
+      67.11,
+      73.15
+     ],
+     [
+      56.99,
+      67.68,
+      71.83,
+      73.15
+     ],
+     [
+      61.83,
+      66.18,
+      65.7,
+      69.49,
+      73.25
+     ]
+    ]
+   }
+  ]
+ },
+ "main": {},
+ "elapsed": 66.5
+}

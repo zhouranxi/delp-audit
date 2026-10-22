@@ -14,8 +14,23 @@ adaptation advantage of compartmentalized routing at any cue-conflict intensity.
 | Directory | Contents | Paper section |
 |---|---|---|
 | `dendritic-lab/` | Original experiment scripts (exp1–exp12), including the flawed baseline runs that triggered the audit | §III (audit findings), §IV |
-| `bench/` | Audit & re-analysis: corrected baselines (`exp6_fixed.py`), seven-rung mechanism ladder (`ladder.py`, 945 cells), gain/α sweeps, gate probes, calibration analyses | §IV–§V |
+| `bench/` | Audit & re-analysis: corrected baselines (`exp6_fixed.py`), seven-rung mechanism ladder (`ladder.py`, 945 cells), gain/α sweeps, gate probes, calibration analyses; second-benchmark replication on Permuted-Fashion-MNIST (`exp6_fixed_fashion.py`, `results_fashion/`) | §IV–§V |
 | `dendrite-mve/` | Preregistered rule-switching study: environments, models, training/stats scripts, preregistrations, raw per-seed results | §VI |
+
+## Second benchmark: Permuted-Fashion-MNIST (`bench/`)
+
+The corrected eight-arm comparison was replicated on Permuted-Fashion-MNIST with an identical
+protocol (same arms, λ grids, validation-selected λ per arm, 5 seeds, T ∈ {5, 10}):
+`exp6_fixed_fashion.py` (dataset adapter over `exp6_fixed.py`), `run_fashion_all.sh`
+(sweep → aggregate → main pipeline), `aggregate_fashion.py` (val λ selection),
+`analyze_fashion.py` (table + paired tests). Raw shards in `bench/results_fashion/`.
+Fashion-MNIST raw IDX files are not committed; download the four `.gz` files from the
+[Zalando Research repository](https://github.com/zalandoresearch/fashion-mnist/tree/master/data/fashion)
+into `fashion_data/`.
+
+Note: `exp6_fixed.py` as initially released contained a defect in the plain-EWC arm
+(per-sample label indexing produced a non-scalar loss on newer PyTorch), fixed by casting
+the label index to `int`; all other arms were unaffected.
 
 ## Preregistered rule-switching experiments (`dendrite-mve/`)
 

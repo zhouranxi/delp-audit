@@ -1,0 +1,56 @@
+{
+ "lam_rule": "val",
+ "sweep": {
+  "si_new@10.0": [
+   {
+    "stage": "sweep",
+    "arm": "si_new",
+    "ntask": 5,
+    "seed": 0,
+    "lam": 10.0,
+    "bwt": -4.13,
+    "final_avg": 50.9,
+    "val_bwt": -4.0,
+    "val_final_avg": 50.86
+   }
+  ],
+  "mas_new@0.001": [
+   {
+    "stage": "sweep",
+    "arm": "mas_new",
+    "ntask": 5,
+    "seed": 1,
+    "lam": 0.001,
+    "bwt": -18.84,
+    "final_avg": 52.25,
+    "val_bwt": -18.46,
+    "val_final_avg": 52.54
+   }
+  ],
+  "mas_new@10.0": [
+   {
+    "stage": "sweep",
+    "arm": "mas_new",
+    "ntask": 5,
+    "seed": 0,
+    "lam": 10.0,
+    "bwt": -8.89,
+    "final_avg": 49.9,
+    "val_bwt": -9.22,
+    "val_final_avg": 48.4
+   }
+  ],
+  "ewc_new@1.0": [
+   {
+    "stage": "sweep",
+    "arm": "ewc_new",
+    "ntask": 5,
+    "seed": 1,
+    "lam": 1.0,
+    "error": "RuntimeError: grad can be implicitly created only for scalar outputs"
+   }
+  ]
+ },
+ "main": {},
+ "elapsed": 52.3
+}

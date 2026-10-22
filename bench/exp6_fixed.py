@@ -252,7 +252,7 @@ def train_arm(base, fixed, seed, data, val, perms, ntask, lam):
                 for i in range(NGRAD_FIX):
                     model.zero_grad()
                     out, _ = model(xs[i:i + 1].to(DEV))
-                    F.log_softmax(out, 1)[0, ys[i]].backward()   # true label
+                    F.log_softmax(out, 1)[0, int(ys[i])].backward()   # true label
                     for k, v in Pd.items():
                         o_new[k] += v.grad.detach() ** 2
                     n_done += 1

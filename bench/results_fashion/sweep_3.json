@@ -1,0 +1,69 @@
+{
+ "lam_rule": "val",
+ "sweep": {
+  "si_new@0.01": [
+   {
+    "stage": "sweep",
+    "arm": "si_new",
+    "ntask": 5,
+    "seed": 1,
+    "lam": 0.01,
+    "bwt": -17.34,
+    "final_avg": 53.03,
+    "val_bwt": -16.66,
+    "val_final_avg": 52.95
+   }
+  ],
+  "si_new@100.0": [
+   {
+    "stage": "sweep",
+    "arm": "si_new",
+    "ntask": 5,
+    "seed": 0,
+    "lam": 100.0,
+    "bwt": -1.73,
+    "final_avg": 35.99,
+    "val_bwt": -1.68,
+    "val_final_avg": 34.97
+   }
+  ],
+  "mas_new@0.01": [
+   {
+    "stage": "sweep",
+    "arm": "mas_new",
+    "ntask": 5,
+    "seed": 1,
+    "lam": 0.01,
+    "bwt": -19.57,
+    "final_avg": 51.05,
+    "val_bwt": -17.99,
+    "val_final_avg": 51.84
+   }
+  ],
+  "mas_new@100.0": [
+   {
+    "stage": "sweep",
+    "arm": "mas_new",
+    "ntask": 5,
+    "seed": 0,
+    "lam": 100.0,
+    "bwt": -8.31,
+    "final_avg": 45.06,
+    "val_bwt": -8.94,
+    "val_final_avg": 43.46
+   }
+  ],
+  "ewc_new@1000.0": [
+   {
+    "stage": "sweep",
+    "arm": "ewc_new",
+    "ntask": 5,
+    "seed": 1,
+    "lam": 1000.0,
+    "error": "RuntimeError: grad can be implicitly created only for scalar outputs"
+   }
+  ]
+ },
+ "main": {},
+ "elapsed": 56.6
+}

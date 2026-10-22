@@ -1,0 +1,179 @@
+{
+ "lam_rule": "val",
+ "sweep": {},
+ "main": {
+  "si_old|5": [
+   {
+    "stage": "main",
+    "arm": "si_old",
+    "ntask": 5,
+    "seed": 4,
+    "lam": 0.01,
+    "bwt": -12.57,
+    "final_avg": 57.6,
+    "acc_matrix": [
+     [
+      67.23
+     ],
+     [
+      55.43,
+      66.18
+     ],
+     [
+      48.07,
+      64.25,
+      66.36
+     ],
+     [
+      36.42,
+      61.49,
+      65.71,
+      68.06
+     ],
+     [
+      39.2,
+      53.0,
+      60.23,
+      65.13,
+      70.44
+     ]
+    ]
+   }
+  ],
+  "mas_new|5": [
+   {
+    "stage": "main",
+    "arm": "mas_new",
+    "ntask": 5,
+    "seed": 3,
+    "lam": 1.0,
+    "bwt": -6.2,
+    "final_avg": 60.36,
+    "val_bwt": -6.05,
+    "val_final_avg": 59.56
+   }
+  ],
+  "ewc|5": [
+   {
+    "stage": "main",
+    "arm": "ewc",
+    "ntask": 5,
+    "seed": 2,
+    "lam": 1000.0,
+    "error": "RuntimeError: grad can be implicitly created only for scalar outputs"
+   }
+  ],
+  "si_new|10": [
+   {
+    "stage": "main",
+    "arm": "si_new",
+    "ntask": 10,
+    "seed": 1,
+    "lam": 100.0,
+    "bwt": -2.21,
+    "final_avg": 26.12,
+    "val_bwt": -2.6,
+    "val_final_avg": 24.97
+   }
+  ],
+  "pack_old|10": [
+   {
+    "stage": "main",
+    "arm": "pack_old",
+    "ntask": 10,
+    "seed": 0,
+    "lam": 0.0,
+    "bwt": 0.0,
+    "final_avg": 21.36,
+    "acc_matrix": [
+     [
+      70.85
+     ],
+     [
+      70.85,
+      56.93
+     ],
+     [
+      70.85,
+      56.93,
+      14.11
+     ],
+     [
+      70.85,
+      56.93,
+      14.11,
+      9.75
+     ],
+     [
+      70.85,
+      56.93,
+      14.11,
+      9.75,
+      8.05
+     ],
+     [
+      70.85,
+      56.93,
+      14.11,
+      9.75,
+      8.05,
+      9.47
+     ],
+     [
+      70.85,
+      56.93,
+      14.11,
+      9.75,
+      8.05,
+      9.47,
+      11.96
+     ],
+     [
+      70.85,
+      56.93,
+      14.11,
+      9.75,
+      8.05,
+      9.47,
+      11.96,
+      11.52
+     ],
+     [
+      70.85,
+      56.93,
+      14.11,
+      9.75,
+      8.05,
+      9.47,
+      11.96,
+      11.52,
+      9.8
+     ],
+     [
+      70.85,
+      56.93,
+      14.11,
+      9.75,
+      8.05,
+      9.47,
+      11.96,
+      11.52,
+      9.8,
+      11.12
+     ]
+    ]
+   }
+  ],
+  "ewc|10": [
+   {
+    "stage": "main",
+    "arm": "ewc",
+    "ntask": 10,
+    "seed": 4,
+    "lam": 1000.0,
+    "error": "RuntimeError: grad can be implicitly created only for scalar outputs"
+   }
+  ]
+ },
+ "elapsed": 38.6
+}
