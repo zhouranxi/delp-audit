@@ -1,0 +1,62 @@
+# Audit of Dendritic Context-Gated Protection (DeLP)
+
+Code, preregistrations, and raw results for the paper *"Where Do the Gains Come From? An
+Audit of Dendritic Context-Gated Protection for Continual Learning"*.
+
+The paper audits our earlier claim that a usage-localized elastic penalty on dendritic
+segments (DeLP) dominates standard continual-learning baselines on Permuted-MNIST. After
+correcting baseline defects, calibration confounds, and protocol errors, only one mechanism
+survives (usage weighting), and three preregistered rule-switching experiments show no
+adaptation advantage of compartmentalized routing at any cue-conflict intensity.
+
+## Layout
+
+| Directory | Contents | Paper section |
+|---|---|---|
+| `dendritic-lab/` | Original experiment scripts (exp1–exp12), including the flawed baseline runs that triggered the audit | §III (audit findings), §IV |
+| `bench/` | Audit & re-analysis: corrected baselines (`exp6_fixed.py`), seven-rung mechanism ladder (`ladder.py`, 945 cells), gain/α sweeps, gate probes, calibration analyses | §IV–§V |
+| `dendrite-mve/` | Preregistered rule-switching study: environments, models, training/stats scripts, preregistrations, raw per-seed results | §VI |
+
+## Preregistered rule-switching experiments (`dendrite-mve/`)
+
+All three experiments (4 models × 8 seeds, 1500 episodes each) are fully preregistered;
+hypotheses, thresholds, and validity gates were fixed before running, and result records
+were appended without altering the preregistered text.
+
+| Directory | Experiment | Cue conflict | Outcome |
+|---|---|---|---|
+| `results_full/` | PR-001 | none (no cues) | H1 not supported (7.1% reduction, p=0.335) |
+| `results_cue_rerun/`, `results_cue/` | PR-002 | 10% misleading cues | H2 not supported (7.1%, p=0.296) |
+| `results_cue_adv/` | PR-003 | 100% adversarial cues | H3 not supported (0.0%, p=0.458) |
+| `results_cue_invalid_20261017_local/` | PR-002 first run | — | voided by preregistered gate (logging defect); kept for the record |
+
+Preregistration documents with amendments and result records: `dendrite-mve/prereg/`.
+Power analysis: `dendrite-mve/power_analysis.py` (MDE at 80% power = 30% adaptation
+reduction for n=8; the PR-003 floor effect raises it to 50%).
+
+## Requirements
+
+Python 3.10+, `torch>=2.0`, `numpy`, `scipy` (see `dendrite-mve/requirements.txt`).
+All runs fit on a single RTX 3090.
+
+## Reproducing
+
+```bash
+# original experiments (pre-audit)
+cd dendritic-lab && python exp9_consistent_table.py
+
+# audit: corrected baselines (8 arms x {5,10} tasks x 5 seeds)
+cd bench && python exp6_fixed.py
+
+# audit: seven-rung mechanism ladder (9 lambda x 5 seeds x {5,10,20} tasks)
+cd bench && python ladder.py
+
+# preregistered rule-switching runs (single GPU, ~55 min per run)
+cd dendrite-mve && python train2.py --model dc_net_cue --seed 0 --device cuda
+# statistics / gates / hypothesis tests
+cd dendrite-mve && python stats2.py   # or stats3.py for PR-003
+```
+
+## License
+
+MIT — see [LICENSE](LICENSE).

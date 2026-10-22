@@ -1,0 +1,9 @@
+{
+  "task": "temporal context XOR (ctx pulses t0-2 slow apical vs mixed fast input)",
+  "T": 40,
+  "epochs": 25,
+  "ntrain": 2000,
+  "point_neuron_acc": 89.6,
+  "dual_compartment_acc": 100.0,
+  "elapsed_sec": 319.3
+}

@@ -1,0 +1,23 @@
+{
+  "data": "MNIST",
+  "ntrain": 2000,
+  "epochs": 30,
+  "note": "dendritic = apical random feedback channel (FA); biologically plausible, no weight transport",
+  "bp": {
+    "final_acc": 71.25,
+    "curve_every10": [
+      14.85,
+      53.15,
+      66.0
+    ]
+  },
+  "dendritic_apical": {
+    "final_acc": 69.25,
+    "curve_every10": [
+      12.65,
+      47.85,
+      64.25
+    ]
+  },
+  "elapsed_sec": 11.0
+}

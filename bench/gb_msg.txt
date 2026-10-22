@@ -1,0 +1,5 @@
+# lane0 load ~240 min
+# lane1 load ~240 min
+# lane2 load ~240 min
+# lane3 load ~256 min
+# 21 blocks, 3780 cells, 4 lanes

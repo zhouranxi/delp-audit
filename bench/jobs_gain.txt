@@ -1,0 +1,4 @@
+0	gA0	sig_probe.py --gains 2,4 --lams 30,100 --nts 5,10 --task-id 0 --n-tasks 4 --out results_sig/gA0.json
+1	gA1	sig_probe.py --gains 2,4 --lams 30,100 --nts 5,10 --task-id 1 --n-tasks 4 --out results_sig/gA1.json
+0	gB0	sig_probe.py --gains 2,4 --lams 10,30 --nts 20 --task-id 2 --n-tasks 4 --out results_sig/gB0.json
+1	gB1	sig_probe.py --gains 2,4 --lams 10,30 --nts 20 --task-id 3 --n-tasks 4 --out results_sig/gB1.json

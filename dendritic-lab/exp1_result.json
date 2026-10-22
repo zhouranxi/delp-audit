@@ -1,0 +1,24 @@
+{
+  "data": "MNIST",
+  "epochs_per_task": 2,
+  "ntrain_per_task": 10000,
+  "point_baseline": {
+    "final_acc": [
+      52.13,
+      63.84,
+      70.19
+    ],
+    "final_avg": 62.05,
+    "bwt_forgetting": -18.3
+  },
+  "active_dendrites": {
+    "final_acc": [
+      51.78,
+      55.73,
+      85.51
+    ],
+    "final_avg": 64.34,
+    "bwt_forgetting": -32.47
+  },
+  "elapsed_sec": 27.3
+}

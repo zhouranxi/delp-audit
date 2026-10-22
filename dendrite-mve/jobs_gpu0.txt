@@ -1,0 +1,16 @@
+dc_net 0
+dc_net 1
+dc_net 2
+dc_net 3
+dc_net 4
+dc_net 5
+dc_net 6
+dc_net 7
+point_net 0
+point_net 1
+point_net 2
+point_net 3
+point_net 4
+point_net 5
+point_net 6
+point_net 7

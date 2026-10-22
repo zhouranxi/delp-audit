@@ -1,0 +1,2 @@
+0	low2	ladder.py --stage sweep --nt 10 --lams 10,30 --task-id 2 --n-tasks 4 --out results_lad/low10_2.json
+1	low3	ladder.py --stage sweep --nt 10 --lams 10,30 --task-id 3 --n-tasks 4 --out results_lad/low10_3.json

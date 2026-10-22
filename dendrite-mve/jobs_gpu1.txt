@@ -1,0 +1,16 @@
+random_mlp 0
+random_mlp 1
+random_mlp 2
+random_mlp 3
+random_mlp 4
+random_mlp 5
+random_mlp 6
+random_mlp 7
+cheap_learner 0
+cheap_learner 1
+cheap_learner 2
+cheap_learner 3
+cheap_learner 4
+cheap_learner 5
+cheap_learner 6
+cheap_learner 7

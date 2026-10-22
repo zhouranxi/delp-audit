@@ -1,0 +1,2 @@
+0	sp2	sig_probe.py --task-id 2 --n-tasks 4 --out results_sig/sp2.json
+1	sp3	sig_probe.py --task-id 3 --n-tasks 4 --out results_sig/sp3.json

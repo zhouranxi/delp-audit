@@ -1,0 +1,15 @@
+0	A_point_slow_ta0.90	d2_wm.py --arms point_slow --taus 0.90 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+1	A_dual_ta0.90	d2_wm.py --arms dual --taus 0.90 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+2	A_point_slow_ta0.97	d2_wm.py --arms point_slow --taus 0.97 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+3	A_dual_ta0.97	d2_wm.py --arms dual --taus 0.97 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+0	A_point_slow_ta0.99	d2_wm.py --arms point_slow --taus 0.99 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+1	A_dual_ta0.99	d2_wm.py --arms dual --taus 0.99 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+2	A_point_slow_ta0.995	d2_wm.py --arms point_slow --taus 0.995 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+3	A_dual_ta0.995	d2_wm.py --arms dual --taus 0.995 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+0	A_point_slow_ta0.999	d2_wm.py --arms point_slow --taus 0.999 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+1	A_dual_ta0.999	d2_wm.py --arms dual --taus 0.999 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+2	B_point_wm	d2_wm.py --arms point_wm --taus 0.97 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+3	B_point_wmh	d2_wm.py --arms point_wmh --taus 0.97 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+0	B_dual_wm	d2_wm.py --arms dual_wm --taus 0.97 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+1	B_dual_wmh	d2_wm.py --arms dual_wmh --taus 0.97 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
+2	B_capacity_n237	d2_wm.py --arms point_slow --nh 237 --taus 0.97 --gaps 2,10,40,80,160,320 --seeds 0,1,2,3,4 --outdir results_d2_wm
