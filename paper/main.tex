@@ -244,6 +244,11 @@ unanswerable. Added.
 
 \noindent\textbf{D5: hyperparameters selected on the test set.} Screening evaluated $\lambda$
 candidates on the test set. Corrected protocol: held-out validation split (train[10000:12000]).
+The validation split is applied to the three arms whose re-implementation evaluates it (plain
+EWC, corrected SI, corrected MAS). The arms that reuse the original implementation keep their
+original $\lambda$, because those implementations do not record held-out metrics; we state this
+asymmetry rather than claim a uniform rule, and it applies equally to the proposed arm and to
+the baselines.
 
 \noindent\textbf{D6: degenerate $\lambda$ grids.} The best $\lambda$ of \delp{}, SI and MAS all sat
 on the upper bound of their grids: the baselines were left in their protection-free regime while
@@ -263,11 +268,14 @@ arm and the baselines ($+1.25$\%) was re-measured and is negligible; we withdraw
 
 \begin{table*}[t]
 \centering
-\caption{Corrected comparison, five seeds, paired $t$-tests against \delp{}. Every arm uses its
-own best $\lambda$ selected on held-out validation (grids per family are released with the code
-and verified to bracket each optimum, \texttt{grid\_check.md}); \emph{orig.} rows reproduce the
-original implementations (verified bit-identical on shared seeds). BWT: higher is better; acc:
-higher is better.}
+\caption{Corrected comparison, five seeds, paired $t$-tests against \delp{}. The corrected arms
+(plain EWC, corrected SI, corrected MAS) use their own best $\lambda$ selected on the held-out
+validation split (MNIST train[10000:12000]); the remaining arms keep the $\lambda$ reported by the
+original run, because their original implementations do not record validation metrics --- this
+is stated explicitly rather than glossed over, and it is the same asymmetry the original table
+had. Grids per family are released with the code and verified to bracket each optimum
+(\texttt{grid\_check.md}). \emph{orig.} rows reproduce the original implementations (verified
+bit-identical on shared seeds). BWT: higher is better; acc: higher is better.}
 \label{tab:main}
 \small
 \begin{tabular}{lrrrr}
