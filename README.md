@@ -23,8 +23,31 @@ If you use this code or refer to the audit, please cite the preprint:
 | Directory | Contents | Paper section |
 |---|---|---|
 | `dendritic-lab/` | Original experiment scripts (exp1–exp12), including the flawed baseline runs that triggered the audit | §III (audit findings), §IV |
-| `bench/` | Audit & re-analysis: corrected baselines (`exp6_fixed.py`), seven-rung mechanism ladder (`ladder.py`, 945 cells), gain/α sweeps, gate probes, calibration analyses; second-benchmark replication on Permuted-Fashion-MNIST (`exp6_fixed_fashion.py`, `results_fashion/`) | §IV–§V |
+| `bench/` | Audit & re-analysis: corrected baselines (`exp6_fixed.py`), seven-rung mechanism ladder (`ladder.py`), gain/α sweeps, gate probes, calibration analyses; second-benchmark replication on Permuted-Fashion-MNIST (`exp6_fixed_fashion.py`, `results_fashion/`) | §IV–§V |
 | `dendrite-mve/` | Preregistered rule-switching study: environments, models, training/stats scripts, preregistrations, raw per-seed results | §VI |
+
+## Data provenance for the paper tables
+
+| Paper item | Source of the quoted numbers |
+|---|---|
+| Table I `orig.` rows (DELP / MAS / PackNet) | `dendritic-lab/exp12_result.json` (archived original table) |
+| Table I corrected rows (EWC, SI, MAS corrected, PackNet corrected) | `exp6_fixed.py` runs with `--lam-rule val`; per-run shards (the `results/` and `results_ei/` directories named by `gen_jobs.py` and `analyze_ei.py`) — **not yet uploaded; see the upload note below** |
+| Table II (Permuted-Fashion-MNIST) | `bench/results_fashion/main_*.json` (5-seed main stage; `sweep_*.json` shards are the 2-seed λ screens and are excluded from the table) |
+| Table III mechanism ladder | `bench/reports/ladder.md` + `bench/reports/ladder.csv` (980 rows, the complete released batch; `bench/out/ladder.csv` is an earlier partial batch kept for the record) |
+| Gain/α sweeps (§V) | `bench/reports/sig_probe.md` |
+| Table V preregistered runs | `dendrite-mve/prereg/*.md` result records + raw per-seed JSONs in `dendrite-mve/results*/` |
+
+> **Upload note (to be resolved):** the corrected-baseline shards behind the Table I
+> corrected rows (EWC / SI / MAS corrected / PackNet corrected at T ∈ {5, 10}) live in the
+> `results/` and `results_ei/` working directories on the compute server and are not yet
+> part of this repository. Until they are added, those eight table cells can be
+> regenerated with `exp6_fixed.py` (see `gen_jobs.py`) but cannot be re-derived from the
+> released files alone.
+
+Note on the two ladder CSVs: `bench/reports/ladder.csv` (980 rows) is the batch behind
+Table III; `bench/out/ladder.csv` (945 rows) is an earlier partial run whose T=20 cells
+differ (elasticity up to +9.11 there vs +7.94 in the released batch). All paper numbers
+follow `bench/reports/`.
 
 ## Second benchmark: Permuted-Fashion-MNIST (`bench/`)
 
