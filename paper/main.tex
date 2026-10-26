@@ -1,0 +1,609 @@
+%% ---------------------------------------------------------------------------
+%% DeLP audit paper (v0.2) -- Where the gains come from
+%% Target: IJCNN 2027 (IEEEtran conference style).  Compile: pdflatex -> bibtex -> pdflatex x2
+%% Figures live in ../figures (300 dpi PNG).
+%% ---------------------------------------------------------------------------
+\documentclass[conference]{IEEEtran}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{newunicodechar}
+  \newunicodechar{−}{\ensuremath{-}}
+  \newunicodechar{±}{\ensuremath{\pm}}
+  \newunicodechar{×}{\ensuremath{\times}}
+  \newunicodechar{→}{\ensuremath{\rightarrow}}
+  \newunicodechar{≥}{\ensuremath{\geq}}
+  \newunicodechar{≤}{\ensuremath{\leq}}
+  \newunicodechar{≈}{\ensuremath{\approx}}
+  \newunicodechar{—}{---}
+  \newunicodechar{–}{--}
+  \newunicodechar{’}{'}
+  \newunicodechar{“}{``}
+  \newunicodechar{”}{''}
+  \newunicodechar{ℓ}{\ensuremath{\ell}}
+\fi
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{url}
+\graphicspath{{./figures/}}
+
+% --- mild spacing tightening so the paper fits the 8-page limit (content unchanged)
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{7pt plus 2pt minus 2pt}
+\setlength{\intextsep}{7pt plus 2pt minus 2pt}
+\setlength{\abovedisplayskip}{4pt plus 1pt minus 1pt}
+\setlength{\belowdisplayskip}{4pt plus 1pt minus 1pt}
+\setlength{\abovedisplayshortskip}{2pt plus 1pt}
+\setlength{\belowdisplayshortskip}{2pt plus 1pt}
+
+\newcommand{\delp}{\textsc{DeLP}}
+\newcommand{\bwt}{\mathrm{BWT}}
+
+\begin{document}
+
+\title{Where Do the Gains Come From? An Audit of\\ Dendritic Context-Gated Protection\\ for Continual Learning}
+
+\author{\IEEEauthorblockN{Ranxi Zhou}
+\IEEEauthorblockA{School of Information Science and Engineering\\
+Hunan University of Chinese Medicine\\
+Changsha 410208, China\\
+Email: \texttt{zhouranxi@foxmail.com}}}
+
+\maketitle
+
+\begin{abstract}
+Cortical pyramidal neurons integrate contextual signals in dendritic compartments, and networks
+with active dendrites inherit this context selectivity. In preliminary, unpublished experiments we
+proposed \delp{}
+(Dendritic Localized Protection), which freezes dendritic segments for non-current contexts and
+weights an elastic penalty by each neuron's measured usage under previous tasks; on Permuted-MNIST
+it appeared to dominate every baseline in both forgetting and accuracy. This paper is the audit we
+should have run before publication. Prompted by an anomaly --- a baseline whose penalty was insensitive to a
+100-fold change of its only hyperparameter --- we found two defects in our MAS implementation,
+three deviations from the SI reference, a fixed-fraction pruning schedule that exhausted PackNet's
+capacity, a missing plain-EWC arm, hyperparameters selected on the test set, and $\lambda$ grids
+that left every baseline in its protection-free regime. After correction, \delp{} keeps the best
+five-task accuracy (80.37\%, next best 75.27, $p=0.0024$) but no longer leads on forgetting, and at
+ten tasks corrected EWC and MAS exceed its accuracy. A seven-rung mechanism ladder localizes what
+remains: with baselines given the same hidden activation, the entire dendritic chain adds
+$+0.37$ points at five tasks ($p=0.49$); the one mechanism that survives a parameter-budget cap is
+usage weighting ($+1.79$, $p=0.005$ at twenty tasks), worth $+4$ to $+6$ points once both sides are
+gain-calibrated. A hidden-layer gain scalar alone moves accuracy by 16 points --- more than the
+entire method --- so the original comparison measured an uncalibrated gain, not a mechanism.
+Finally, preregistered experiments in a rule-switching task matched to the neuroscience show that
+compartmentalized routing itself confers no adaptation advantage larger than 30\% --- the
+sensitivity limit of 8 preregistered seeds --- across three cue-conflict intensities, up to and
+including fully adversarial cues. We report the corrected accounting as the contribution: when
+benchmarking protection methods, the gain must be declared, the grid must bracket the optimum, and
+the baseline must be implemented as carefully as the method.
+\end{abstract}
+
+\begin{IEEEkeywords}
+dendritic computation, continual learning, catastrophic forgetting, active dendrites, elastic
+weight consolidation, reproducibility
+\end{IEEEkeywords}
+
+%% ===========================================================================
+\section{Introduction}
+%% ===========================================================================
+Cortical pyramidal neurons are not point units: their dendritic arbors form semi-independent
+compartments that integrate contextual signals with sensory input, and recent in vivo work shows
+that apical dendrites encode abstract rules which the soma combines with sensory
+evidence~\cite{zhang2026}. Networks with active dendrites~\cite{iyer2022} inherit this
+context selectivity, and it is tempting to read the same structure as a recipe for continual
+learning: if dendritic gating is the biological solution to interference within a cell, the
+structure should indicate \emph{where} an elastic penalty~\cite{kirkpatrick2017,zenke2017} should
+protect, and how much~\cite{mallya2018}.
+
+We pursued this idea in preliminary, unpublished experiments (archived; Appendix~A) and obtained
+striking support: a usage-localized elastic penalty (\delp{})
+appeared to reduce forgetting from $-12.67$ to $-1.94$ BWT and raise accuracy from 74.96\% to
+80.37\%, beating Synaptic Intelligence (SI), MAS and PackNet on both axes at five tasks. That
+comparison, however, carried defects we had not looked for --- one instance of a pattern repeated
+across machine-learning subfields, where re-tuned baselines and honest hyperparameter budgets
+erase apparent advances~\cite{musgrave2020,lucic2018,melis2018}. This paper reports the audit, the
+corrected results, and two lines of evidence that were only possible after it.
+
+\noindent\textbf{How the audit started.} In our screening data, MAS was insensitive to a
+100-fold change of its only hyperparameter ($\lambda\in\{0.1,1,10\}$ moved its BWT by $0.26$
+points, versus $8.35$ for SI and $8.50$ for \delp{} on the same protocol). A penalty that does not
+respond to its own strength is not being applied. Chasing that one observation exposed two MAS
+bugs, three deviations from the SI reference, a capacity-exhausting PackNet schedule, a missing
+EWC arm, and two protocol errors (test-set selection and degenerate $\lambda$ grids) that
+systematically favored the proposed method.
+
+\noindent\textbf{What survives.} We re-ran the full comparison with every arm implemented and
+selected correctly (Section~\ref{sec:audit}); decomposed the method into seven mechanisms on one
+pipeline (Section~\ref{sec:ladder}); and ran three preregistered experiments in a rule-switching
+task matched to the neuroscience, asking whether compartmentalized routing itself helps adaptation
+(Section~\ref{sec:prereg}). Three conclusions survive, all smaller than the original claims:
+usage weighting is the one dendritic mechanism with evidence that survives budget capping and gain
+calibration; the dominant factor in the original table was an uncalibrated hidden-layer gain; and
+compartmental structure, on its own, buys nothing measurable in either paradigm.
+
+\noindent\textbf{Contributions.}
+\begin{enumerate}
+\item A defect-by-defect audit of our own preliminary comparison, with corrected eight-arm results at
+five and ten tasks and paired tests (Section~\ref{sec:audit}).
+\item A mechanism ladder isolating seven candidate sources of gain, plus a gain-sweep analysis
+showing that a single scalar --- hidden-layer gain --- outweighs the entire method, with a probe
+showing the proposed gate never opens (Section~\ref{sec:ladder}).
+\item A calibration protocol separating ``default'', ``capped-budget'' and ``gain-calibrated''
+comparisons, under which usage weighting is the only mechanism that survives
+(Section~\ref{sec:calib}).
+\item Preregistered rule-switching experiments (with instrument-incident gates) showing no
+adaptation benefit of compartmentalized routing across three cue-conflict intensities, with a post
+hoc sensitivity analysis bounding the claim to effects above a 30\% adaptation reduction
+(Section~\ref{sec:prereg}).
+\end{enumerate}
+
+%% ===========================================================================
+\section{Background and Related Work}
+%% ===========================================================================
+\noindent\textbf{Dendritic computation.} Cable theory and two-layer models made the theoretical
+case for dendritic nonlinearity~\cite{poirazi2003}, and its computational vocabulary is mapped in
+detail~\cite{london2005,poirazi2020}; one cortical neuron can approximate a deep
+network~\cite{beniaguev2021}, and apical dendrites were proposed as excitable integrators long
+ago~\cite{chang1951,ujfalussy2018}. Dendritic-plasticity work argues that context-dependent
+inhibition gates plasticity at branches, letting overlapping assemblies coexist~\cite{onasch2026}.
+On the engineering side, dendritic complexity is argued to be a route to neuromorphic
+efficiency~\cite{cardwell2025,boyle2025,baek2024,boahen2022}.
+
+\noindent\textbf{Active dendrites and continual learning.} Neurons with multiple dendritic
+segments that receive a context vector and gate the feedforward response support multi-task
+learning~\cite{iyer2022}. Regularization methods protect important weights (EWC's
+Fisher~\cite{kirkpatrick2017}, SI's path integral~\cite{zenke2017}, MAS's output-norm
+sensitivity~\cite{aljundi2018}); isolation methods allocate capacity (PackNet~\cite{mallya2018},
+hard attention~\cite{serra2018}); context-dependent gating modulates units by
+context~\cite{masse2018}. \delp{} sits between the families: a Fisher-style penalty whose
+per-parameter weight comes from the gating structure itself~\cite{parisi2019}. The audit protocol
+used here --- validation-selected grids, parameter-budget caps, gain calibration, preregistered
+gates --- follows the reporting standards advocated for empirical
+ML~\cite{lipton2019,agarwal2021}.
+
+%% ===========================================================================
+\section{Method}\label{sec:method}
+%% ===========================================================================
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_concept.png}
+\caption{(a) The active-dendrite neuron: a context vector is projected onto $K$ dendritic
+segments, the strongest segment gates the shared feedforward drive, and a kWTA nonlinearity
+sparsifies the layer; only the winning segment is updated during a task. (b) The three candidate
+interference channels and their measured consequences at five tasks: freezing the dendritic
+segments changes little; per-task readouts relocate the interference; hard per-neuron freezing
+collapses capacity.}
+\label{fig:concept}
+\end{figure*}
+
+\noindent\textbf{Active-dendrite neuron.} Each hidden neuron $j$ ($j=1..N$) carries $K$ dendritic
+segments. A context vector $\mathbf{c}\in\mathbb{R}^{T}$ (one-hot task identity) is projected onto
+segments through $U\in\mathbb{R}^{K\times N\times T}$, the dendritic response is the maximum over
+segments, and
+\begin{equation}
+h_j = \mathrm{kWTA}\big( (\mathbf{w}_j^{\top}\mathbf{x} + b_j)\cdot \sigma(d_j) \big),
+\end{equation}
+with $\sigma$ the logistic function and kWTA keeping the top-$k$ activations per layer
+($k=N/4$). During training of task $t$, gradients to $U$ are masked so only the rows selected by
+context $t$ are updated (segment freeze).
+
+\noindent\textbf{Why the penalty looks at the shared projection.} An interference-channel
+ablation established where forgetting lives: freezing dendritic segments changes little
+($-14.79$ vs.\ $-15.16$ BWT for unfrozen); extending the freeze to the feedforward rows of
+task-owned neurons collapses accuracy to 67.35\% (capacity starved); per-task readouts relocate the
+interference into the shared feedforward projection ($-19.78$ BWT). The shared feedforward
+projection and readout are therefore the channels a protection method must address, and the
+dendritic gate supplies a per-neuron \emph{usage} statistic for grading the protection:
+$o_{t',j}$, the fraction of task-$t'$ samples on which neuron $j$ is inside the kWTA winner set.
+The penalty is
+\begin{equation}
+\mathcal{L} = \mathcal{L}_{\mathrm{CE}} + \lambda \sum_{t' < t} \sum_{i} F^{\mathrm{loc}}_{t',i}\,
+(\theta_i - \theta^{\ast}_{t',i})^2, \quad
+F^{\mathrm{loc}}_{t',i} = o_{t',j(i)} \cdot F_{t',i},
+\end{equation}
+with $F_{t'}$ the diagonal Fisher estimated on 300 samples per task and $o$ on 500; both reuse the
+task's training data. Unlike hard gating, protection is soft: a penalized neuron can still move at
+a quadratic price. Fisher uses the max-log-probability variant throughout (Section~\ref{sec:lam}).
+Test-time context inference from a 500-sample buffer (linear classifier on feedforward features)
+matched oracle context exactly.
+
+%% ===========================================================================
+\section{Auditing the original comparison}\label{sec:audit}
+%% ===========================================================================
+The original comparison (five seeds, paired $t$-tests, one pipeline) reported \delp{} at
+$-1.94\pm0.42$ BWT / $80.37\pm0.67$\% accuracy, ahead of SI ($-3.39$ / 77.56), MAS ($-12.32$ /
+75.27) and PackNet (0.00 / 43.95) --- these are the archived original numbers
+(\texttt{exp12\_result.json}); the SI rows of Table~\ref{tab:main} report the corrected re-run
+under the validation-selected protocol and therefore differ. The audit found seven defects; we
+state each with its location and consequence.
+
+\noindent\textbf{D1: MAS importance estimated from batch-averaged gradients, twice divided.} Our
+MAS backward-passed an already-averaged objective, multiplied squared \emph{mean} gradients by
+$1/B$ again (losing sample variance and shrinking $\Omega$ by the batch size), and then divided the
+accumulated $\Omega$ by the usage count at the end of \emph{every} task without resetting, so task
+0's contribution decayed as $(1/8)^{t}$ ($7.5\times10^{-9}$ by task 9). The penalty protected only
+the most recent task. Consequence: MAS's $\lambda$ elasticity was $+0.08$ over two orders of
+magnitude; after the fix it is $+1.40$, and its best five-task BWT improves from $-12.07$ to
+$-3.60$. The original ``MAS trails by 10.4 points'' was mostly this bug.
+
+\noindent\textbf{D2: SI deviated from its reference in three places.} The denominator used
+$|\Delta\theta|$ instead of $(\Delta\theta)^2+\xi^2$ (with $\xi=10^{-3}$ instead of $0.1$), and an
+\texttt{abs()} destroyed the sign of the path integral. The effect on BWT at matched optimum is
+small ($-0.15$ vs.\ $-0.36$), but the implementation was not SI.
+
+\noindent\textbf{D3: PackNet pruned 20\% of free capacity per task.} After five tasks 32.8\% of
+parameters remain, after ten 10.7\%: the reported collapses to 43.95\% / 27.38\% are budget
+exhaustion, not method failure. The corrected variant plans per-task capacity proportionally and
+prunes per layer.
+
+\noindent\textbf{D4: no plain-EWC arm.} \delp{} \emph{is} an EWC penalty plus branch protection, so
+without a plain-EWC arm the decomposition ``how much is EWC, how much is the dendritic part'' was
+unanswerable. Added.
+
+\noindent\textbf{D5: hyperparameters selected on the test set.} Screening evaluated $\lambda$
+candidates on the test set. Corrected protocol: held-out validation split (train[10000:12000]).
+
+\noindent\textbf{D6: degenerate $\lambda$ grids.} The best $\lambda$ of \delp{}, SI and MAS all sat
+on the upper bound of their grids: the baselines were left in their protection-free regime while
+the proposed method's grid covered its working range. Extending SI's grid to $\lambda=100$ moves
+its BWT from $-4.04$ to $-0.36$. A related selection rule --- choosing $\lambda$ by best BWT ---
+is structurally degenerate here, since BWT improves monotonically with $\lambda$ while accuracy is
+unimodal: across 21 (mechanism $\times$ task-count) cells, BWT-based selection hit the grid upper
+bound 21 times, each 8--31 accuracy points below the cell's peak. All corrected results select
+$\lambda$ by validation accuracy.
+
+\noindent\textbf{D7: initialization not seeded (protocol).} An earlier unseeded pipeline drifted in
+the third digit and once flipped a verdict (SI advantage $p=0.058$ unseeded vs.\ $p=0.039$
+seeded). All corrected runs seed every arm.
+
+\noindent\textbf{Withdrawn suspicion.} Architectural parameter inequality between the proposed
+arm and the baselines ($+1.25$\%) was re-measured and is negligible; we withdraw it as a concern.
+
+\begin{table*}[t]
+\centering
+\caption{Corrected comparison, five seeds, paired $t$-tests against \delp{}. Every arm uses its
+own best $\lambda$ selected on held-out validation (grids per family are released with the code
+and verified to bracket each optimum, \texttt{grid\_check.md}); \emph{orig.} rows reproduce the
+original implementations (verified bit-identical on shared seeds). BWT: higher is better; acc:
+higher is better.}
+\label{tab:main}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+ & \multicolumn{2}{c}{Five tasks} & \multicolumn{2}{c}{Ten tasks} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Method & BWT & Final avg acc & BWT & Final avg acc \\
+\midrule
+\delp{} (ours)                     & $\mathbf{-1.94 \pm 0.42}$ & $\mathbf{80.37 \pm 0.67}$ & $-5.38 \pm 0.44$ & $55.23 \pm 1.41$ \\
+EWC (online, multi-anchor)         & $-7.08 \pm 1.19$ & $74.28 \pm 0.86$ & $-7.81 \pm 1.28$ & $\mathbf{68.35 \pm 0.95}$ \\
+SI (reference impl.)               & $\mathbf{-0.03 \pm 0.35}$ & $62.33 \pm 1.41$ & $\mathbf{-1.31 \pm 0.29}$ & $40.57 \pm 1.51$ \\
+SI (orig.\ impl.)                  & $-0.15 \pm 0.38$ & $63.34 \pm 1.63$ & $-0.86 \pm 0.13$ & $39.46 \pm 1.46$ \\
+MAS (corrected)                    & $-3.72 \pm 0.82$ & $75.22 \pm 0.55$ & $-5.22 \pm 0.66$ & $62.91 \pm 1.02$ \\
+MAS (orig.\ impl.)                 & $-12.32 \pm 2.53$ & $75.27 \pm 1.99$ & $-19.88 \pm 1.27$ & $68.00 \pm 1.23$ \\
+PackNet (corrected)                & $-12.67 \pm 2.60$ & $74.96 \pm 2.01$ & $-19.92 \pm 0.68$ & $67.93 \pm 0.83$ \\
+PackNet (orig.\ impl.)             & $0.00$ (mask) & $43.95 \pm 0.82$ & $0.00$ (mask) & $27.38 \pm 0.63$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\noindent\textbf{Corrected comparison.} Table~\ref{tab:main} replaces the original main table.
+Three original claims do not survive. (i) ``MAS trails by 10 points'': the corrected MAS trails by
+1.8 accuracy-\emph{significant} points at five tasks ($p=0.015$ on BWT, $p=0.0001$ on accuracy) and
+is statistically indistinguishable on BWT at ten tasks ($-5.22$ vs.\ $-5.38$, $p=0.63$) with
+7.7 points \emph{more} accuracy ($p=0.0001$). (ii) ``\delp{} forgets less than SI'': at ten tasks
+SI's BWT is significantly better ($-1.31$ vs.\ $-5.38$, $p<0.0001$). (iii) ``best accuracy at ten
+tasks'': corrected EWC (68.35\%, $p=0.0003$) and MAS (62.91\%, $p=0.0001$) both exceed \delp{}'s
+55.23\%. What survives: the best five-task accuracy, 5.1 points above the next best arm
+($p=0.0024$); the orig.\ rows show the original table compared against broken baselines. The table
+is best read as a frontier, not a ranking: SI occupies the low-forgetting end, corrected EWC/MAS
+the high-accuracy end at ten tasks, and \delp{} the best measured five-task operating point.
+
+\begin{table}[t]
+\centering
+\caption{Corrected comparison on Permuted-Fashion-MNIST (second benchmark; 5 seeds, val-selected
+$\lambda$, same protocol as Table~\ref{tab:main}). Original-implementation rows, omitted here,
+again trail their corrected counterparts by 5--11 accuracy points.}
+\label{tab:fashion}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{Five tasks} & \multicolumn{2}{c}{Ten tasks} \\
+\cmidrule(lr){2-3}\cmidrule(l){4-5}
+Arm & acc. & BWT & acc. & BWT \\
+\midrule
+\delp{}           & \textbf{66.9}$\pm$0.9 & $-8.5$$\pm$1.4 & 55.5$\pm$1.6 & $-18.0$$\pm$1.6 \\
+MAS (corrected)   & 60.8$\pm$0.7 & $-4.1$$\pm$1.5 & \textbf{56.3}$\pm$1.1 & $-8.5$$\pm$1.3 \\
+EWC               & 57.1$\pm$1.8 & $-11.3$$\pm$1.2 & 53.5$\pm$3.4 & $-12.7$$\pm$3.0 \\
+PackNet (corr.)   & 55.3$\pm$3.1 & $-15.2$$\pm$3.2 & 48.4$\pm$3.9 & $-22.2$$\pm$4.3 \\
+SI (corrected)    & 34.6$\pm$2.7 & $\mathbf{-2.8}$$\pm$0.9 & 26.6$\pm$1.2 & $\mathbf{-1.9}$$\pm$0.6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent\textbf{Second benchmark.} Does the corrected picture transfer? Re-running the full
+corrected protocol (identical arms, grids, val $\lambda$ rule and seeds) on Permuted-Fashion-MNIST
+gives the same shape (Table~\ref{tab:fashion}): \delp{} holds the best five-task accuracy
+($+6.2$ over corrected MAS, $p=0.0003$), the ten-task accuracy lead disappears (MAS $+0.8$,
+$p=0.54$; EWC $p=0.32$), and corrected SI/MAS forget significantly less at ten tasks
+($p\leq0.003$). The conclusion of the audit is not an artifact of one dataset.
+
+%% ===========================================================================
+\section{Mechanism ladder and the gain confound}\label{sec:ladder}
+%% ===========================================================================
+The corrected table says the \emph{comparison} was flawed, not which part of the method works. To
+attribute gains to mechanisms we trained seven rungs on one pipeline, each rung adding exactly one
+mechanism, all else identical (R0: point MLP + EWC with squashed hidden activation;
+R0b: value-range compression removed; R1: $+$ dendritic parameters, context pinned to zero;
+R2: $+$ context gating; R3: $+$ segment freeze; R4: $+$ usage weighting ($=$ \delp{}); R5: $+$ CE
+Fisher). Two self-checks gate the analysis: R1 must be bit-identical to R0b (it is: $\Delta=0.00$,
+$p=1.000$, confirming the padded dendritic layer is dead weight), and every rung's $\lambda$
+elasticity must be positive (all are, $+2.55$ to $+7.94$ in the released ladder batch).
+
+\begin{table}[t]
+\centering
+\caption{Rung-by-rung accuracy gain (each rung at its own validation-selected $\lambda$; $p$ in
+parentheses; five seeds). Differences are computed from unrounded per-seed means, so
+subtracting the rounded rung accuracies in the released table can differ by $0.01$.}
+\label{tab:ladder}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Step & $T{=}5$ & $T{=}10$ & $T{=}20$ \\
+\midrule
+R0$\to$R0b: remove squashing   & $+5.37$ (.000) & $+4.49$ (.000) & $+2.13$ (.012) \\
+R0b$\to$R1: dendritic params   & $+0.00$ (1.00) & $+0.00$ (1.00) & $+0.00$ (1.00) \\
+R1$\to$R2: context gating      & $+0.61$ (.172) & $+0.37$ (.019) & $+1.35$ (.260) \\
+R2$\to$R3: segment freeze      & $-0.11$ (.616) & $+0.05$ (.873) & $-0.37$ (.602) \\
+R3$\to$R4: usage weighting     & $-0.13$ (.563) & $+0.07$ (.820) & $+1.02$ (.008) \\
+R4$\to$R5: CE Fisher           & $+0.04$ (.842) & $+0.04$ (.863) & $-0.76$ (.404) \\
+\midrule
+R4 (full method) vs.\ R0b      & $+0.37$ (.494) & $+0.49$ (.083) & $+2.00$ (.025) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:ladder} is the paper's central accounting. The single largest step is the removal
+of the hidden squashing: sigmoid compresses the pre-activation into $(0,1)$, collapsing amplitude
+information (a gain sweep shows accuracy rises monotonically with the post-sigmoid gain,
+$r=+0.94$ --- amplitude compression, not ``saturation'', is the mechanism). The dendritic
+parameters themselves contribute exactly zero (bitwise identity). Context gating is small, positive
+and direction-stable (BWT $+3.10$, $p=0.001$ at five tasks). Segment freeze is zero. Usage
+weighting is the only rung whose value grows with sequence length ($+1.02$, $p=0.008$ at twenty
+tasks), as expected if it offsets penalty amortization across more anchors. Summed against the
+same-activation baseline R0b, the full method is $+0.37$ ($p=0.49$) at five tasks, $+0.49$
+($p=0.083$) at ten, and $+2.00$ ($p=0.025$) at twenty.
+
+\noindent\textbf{The gain confound, quantified.} kWTA is scale-equivariant
+($\mathrm{kWTA}(\alpha t)=\alpha\,\mathrm{kWTA}(t)$, verified exactly), so a hidden-layer gain
+$\alpha$ does not change the function class --- but it changes how far weights must travel, and
+EWC-style penalties are quadratic in displacement. Sweeping $\alpha$ on plain ``MLP+EWC'' moves
+five-task accuracy from 76.24 ($\alpha_{\mathrm{eff}}\approx0.5$) to 92.40 ($\alpha{=}16$) ---
+$+16.2$ points, versus $+0.37$ for the entire method chain; at $\alpha{=}2$ already, plain
+MLP+EWC beats the full \delp{} on accuracy \emph{and} forgetting at all three task counts. The
+\delp{} gate is $t\cdot\sigma(d)$ with $d$ learnable, so it could in principle open; a probe that
+logs the gate during full training shows it never does: $\overline{\sigma(d)}=0.575$--$0.577$
+across all five tasks (0.55 at twenty), i.e., an uncalibrated $\approx0.58$ gain sitting near the
+worst end of the sweep. The original comparison therefore measured a gain miscalibration, not a
+mechanism.
+
+\subsection{What survives: calibration protocols}\label{sec:calib}
+Because gain interacts with every $\lambda$-style penalty, ``how much better is the method''
+depends on the calibration protocol, and we now report all three (Table~\ref{tab:proto}).
+Under \emph{default} settings (neither side gain-tuned; dendritic parameter budget capped at
+$nseg=\min(8,T)$, which cuts the twenty-task dendritic block from 102{,}400 to 40{,}960 parameters
+with all five rungs unchanged within noise), usage weighting beats the same-activation baseline by
+$+1.79$ ($p=0.005$) at twenty tasks. Under \emph{gain calibration} (two-point gain probe per
+family at each family's own optimal $\lambda$), \delp{} gains $+6.3$/$+8.6$/$+9.7$ points
+(five/ten/twenty tasks) --- but so do the baselines (MAS $+4.1$/$+3.4$/$+4.6$, SI
+$+3.3$/$+6.0$/$+3.1$, EWC $+3.5$/$+0.7$/$+3.0$); the calibrated comparison leaves \delp{} ahead by
+$+4$ to $+6$ points (87.81/83.00/75.18 vs.\ best baseline 81.80/78.99/70.92). Under the
+\emph{original} protocol (neither side tuned, published configurations) the difference
+\emph{changes sign} with $T$ ($-0.85$ to $+3.7$) and is unusable. The usage-weighting result is a
+per-family two-point probe at fixed $\lambda^{\ast}$, not a joint (gain $\times$ $\lambda$) grid,
+so $+4$--$6$ is an approximate lower bound.
+
+\begin{table}[t]
+\centering
+\caption{The same question under three calibration protocols: \delp{} accuracy advantage over the
+best same-activation baseline.}
+\label{tab:proto}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.36\columnwidth}rp{0.33\columnwidth}@{}}
+\toprule
+Protocol & Adv. & Status \\
+\midrule
+Both default (published cfg.) & $-0.85$ to $+3.7$ & changes sign with $T$; unusable \\
+Usage weighting, capped budget & $+1.79$ ($p{=}.005$) & $T{=}20$ only; budget-controlled \\
+Both gain-calibrated & $+4$ to $+6$ & two-point probe; lower bound \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ===========================================================================
+\section{Preregistered rule-switching tests}\label{sec:prereg}
+%% ===========================================================================
+The biological motivation predicts more than a usage statistic: if apical compartments are where
+top-down rule signals meet sensory evidence~\cite{zhang2026}, a network that routes the two into
+separate compartments should \emph{adapt faster} when rules change than a network that fuses them.
+This is a structural claim, distinct from protection, and we tested it in a preregistered
+companion study (thresholds, gates and sample sizes fixed before running; deviations require a
+numbered amendment).
+
+\noindent\textbf{Task and models.} Rule-switching categorization: $d=16$ stimuli, 4 random linear
+rules (resampled per seed), unsignaled switches every 80 trials, 480-trial episodes, reward
+correctness $p=0.85$. GRU-backed policy networks trained with REINFORCE (1500 episodes, 8 seeds,
+lr $10^{-3}$, belief-auxiliary loss). DC-Net routes a rule-cue plus history summary and reward
+prediction error to a top (apical) compartment feeding a gating signal, while sensory input
+reaches the basal dendrites; Point-Net receives the identical information fused into one stream;
+Random-MLP has the same parameters with scrambled structure; a trivial-learner gates task
+difficulty. In PR-002 each block carries a one-hot rule cue, valid with $p=0.9$ and actively
+misleading otherwise, giving blocks where the top-down signal conflicts with sensory evidence ---
+the regime where compartmental isolation should help most. PR-003 removes the contrast entirely:
+the cue is misleading in \emph{every} block ($p_{\text{valid}}=0$), so the top-down stream carries
+pure inverted information and must be suppressed rather than occasionally corrected.
+
+\begin{table}[t]
+\centering
+\caption{Preregistered rule-switching results across three cue-conflict intensities (cue
+misleading in 0\%, 10\%, or 100\% of blocks; per-seed medians of post-switch trials to 80\%
+correct, 8 seeds; Mann-Whitney $U$, one-sided; reduction threshold $\geq$25\%).}
+\label{tab:prereg}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+ & PR-001 (none) & PR-002 (10\%) & PR-003 (100\%) \\
+\midrule
+DC-Net final acc          & 0.648 & 0.649 & 0.647 \\
+Point-Net final acc       & 0.643 & 0.654 & 0.632 \\
+Trivial learner acc       & 0.500 & 0.500 & 0.500 \\
+DC-Net adapt med.\ [CI]   & 6.5 [4.5, 7.8] & 6.5 [3.9, 7.6] & 6.5 [4.5, 7.8] \\
+Point-Net adapt med.      & 7.0 & 7.0 & 6.5 \\
+Median reduction          & 7.1\% & 7.1\% & 0.0\% \\
+$p$                       & 0.335 & 0.296 & 0.458 \\
+Cohen's $d$               & $-0.27$ & $-0.18$ & $-0.37$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent\textbf{Result.} All three hypotheses fail to meet the preregistered criterion
+(Table~\ref{tab:prereg}). In PR-001, with validity gates passed (trivial learner 14.8 points below;
+scrambled-structure control indistinguishable from DC-Net, so the null cannot be attributed to
+parameter count), DC-Net's post-switch adaptation is 7.1\% faster at $p=0.335$. In PR-002, with the
+misalignment rate verified at 9.83\% ($n=240{,}000$ switches) against the preregistered 10\%, the
+numbers are essentially identical (7.1\%, $p=0.296$); in cue-valid blocks the two architectures are
+exactly tied (6.0 vs.\ 6.0, $p=0.69$). In PR-003, with misalignment verified at 100\%, the two are
+again exactly tied (6.5 vs.\ 6.5, $p=0.458$) --- and both medians sit at this task's measurement
+floor, where detection is hardest. Validity gates passed in all three runs; a first instrumented
+run of PR-002 was automatically voided by its own preregistered gate when a logging defect left
+condition labels unrecorded, and re-run --- we report this because the gate doing its job is part
+of the result.
+
+\noindent\textbf{Sensitivity.} The claims above are bounded, and we bound them ourselves. A post
+hoc simulation on the Point-Net reference distribution (20{,}000 resamples per point; DC-Net
+samples drawn as a fixed scaling of bootstrap draws) shows that with 8 seeds and a one-sided
+Mann-Whitney test at $\alpha=0.05$, the design had 80\% power only against median reductions of
+$\geq$30\%; at the preregistered 25\% threshold power was $\approx$50\%, and at the observed 7.1\%
+it was $<$5\%. The defensible conclusion is therefore: \emph{no compartmentalization advantage of
+30\% or more exists in this task family}, while smaller effects --- including the observed 7.1\% ---
+cannot be distinguished from zero with this sample size. In PR-003 both medians sit at the
+measurement floor, degrading the detectable effect to 50\%; an exact tie at the floor nonetheless
+weakly favors the null.
+
+\noindent\textbf{Reading.} In this task family a GRU history summary already carries the rule
+inference; routing top-down information through a separate compartment adds nothing measurable,
+at any of three conflict intensities --- none, occasional, or fully adversarial --- and the
+conflict gradient itself shows no dose--response trend (adaptation may sit near the
+information-theoretic floor for 4-way
+rules under 15\% feedback noise). Combined with the ladder: the measurable
+value of dendritic structure in our systems is not its routing or its isolation but the
+\emph{measurement} it computes --- per-neuron, per-context usage --- and even that value appears
+only as a weighting inside an elastic penalty, only under a capped budget, and only at long
+horizons.
+
+%% ===========================================================================
+\section{Learning versus retention at ten tasks}\label{sec:lam}
+%% ===========================================================================
+For completeness we retain the decomposition $\bar{a}_T = \ell + \frac{T-1}{T}\bwt$ ($\ell$: mean
+just-learned accuracy). At ten tasks the point MLP learns each task to $\approx$86\% and forgets
+heavily, while \delp{} learns less and forgets little; the deficit is not a width limit
+(256$\to$1024 recovers 3.4 points of $\ell$, costs 2.5 of BWT) nor a representational wall
+(single-task ceiling 89.4\% at $N{=}256$), but an accumulated elastic anchor cost: sweeping
+$\lambda$ trades the two terms monotonically (BWT improves 16.3 points while $\ell$ falls 33.2
+from $\lambda{=}100$ to $10^4$), and truncating the anchor set to the five most recent tasks
+recovers part of $\ell$ at every $\lambda$. Per-task kWTA winner sets overlap substantially (mean
+pairwise Jaccard 0.51): gating does not partition neurons --- ``ownership'' of parameters is
+imposed, not discovered. No single $\lambda$ dominates SI on both axes at ten tasks
+(Fig.~\ref{fig:cap}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.88\columnwidth]{fig_capacity.png}
+\caption{Ten-task learning/retention decomposition: the loss lies in the learning term.}
+\label{fig:cap}
+\end{figure}
+
+%% ===========================================================================
+\section{Discussion}
+%% ===========================================================================
+\noindent\textbf{What the dendritic story buys --- revised.} The audited evidence supports a
+claim with three qualifiers. Dendritic compartmentalization provides no capacity (bitwise-null
+when context is pinned), no protection by itself (segment freeze $\approx 0$), and no adaptation
+advantage above the 30\% sensitivity limit in preregistered rule-switching tasks across three
+conflict intensities, including fully adversarial top-down signals. What it provides, once, and
+only as a component: context-conditioned gating computes a per-neuron usage statistic, and
+weighting an elastic penalty by that statistic is the one mechanism whose gain survives budget
+capping ($+1.79$, $p=0.005$ at twenty tasks) and grows under calibration. This is closer to an
+accounting principle than to an architecture: the biology says where to look, standard elastic
+machinery does the work, and every other presumed benefit dissolved under controlled comparison.
+
+\noindent\textbf{Lessons for benchmarking protection methods.} Five practices would have caught
+most of Section~\ref{sec:audit} before publication: (i) a hyperparameter-elasticity check per arm
+(a penalty that ignores its own $\lambda$ is not applied); (ii) validation-based model selection
+with grids verified to bracket each arm's optimum on \emph{both} ends; (iii) a plain-EWC arm
+whenever the method contains EWC as a component; (iv) an activation- and gain-matched baseline,
+since quadratic penalties interact with parameter scale and a single free scalar outweighed the
+entire method here; (v) preregistered gates for confirmatory claims, including gates that void the
+run when instrumentation fails.
+
+\noindent\textbf{Limitations.} (i) Both benchmarks are MNIST-derived (Permuted-MNIST,
+Permuted-Fashion-MNIST); a non-MNIST family such as Split-CIFAR10 remains future
+work. (ii) Task identity is available at training time (test-time inference shown lossless here).
+(iii) Gain calibration uses a two-point probe per family at fixed $\lambda^{\ast}$, not a joint
+(gain $\times$ $\lambda$) grid: the $+4$--$6$ calibrated advantage is an approximate lower bound.
+(iv) The one-hot context leaves the capped dendritic block $+20$\% parameters at twenty tasks.
+(v) The rule-switching null covers one task family (4-way rules, 85\% feedback noise, GRU
+summary); gates cannot rule out effects below $\sim$7\% at this sample size. (vi) All runs use 2
+epochs and 10k samples per task.
+
+%% ===========================================================================
+\section{Conclusion}
+%% ===========================================================================
+We asked whether dendritic context gating tells a continual-learning system where to protect its
+knowledge, and the audited answer is more modest and more useful than our first report. The
+original comparison was inflated by baseline defects, test-set selection and an uncalibrated gain;
+after correction, the dendritic structure contributes exactly one mechanism with standing evidence
+--- a per-neuron usage statistic that localizes an elastic penalty ($+1.79$ points at twenty tasks
+under a capped budget, $+4$--$6$ gain-calibrated) --- and nothing else:
+no capacity, no protection from freezing, no adaptation advantage from compartmental routing
+across three preregistered conflict levels. A hidden-layer gain scalar moved accuracy more than
+the entire method --- both the reason the original table looked as it did and the paper's most
+transferable finding. Dendritic computation, in this benchmark family, is most useful not as extra
+capacity or isolation but as \emph{measurement}: a signal about which parts of a network mean
+what --- provided the comparison is calibrated well enough to see it.
+
+\appendices
+\section{Reproducibility and hyperparameters}
+Code and raw result files (preregistrations, per-seed JSONs, analysis scripts) are archived at
+\url{https://github.com/zhouranxi/delp-audit}. Original experiments:
+\texttt{dendritic-lab/} --- \texttt{exp4*}/\texttt{exp5} (ablation chain, \delp{}),
+\texttt{exp6} (original baselines), \texttt{exp8} (shared pool, context inference),
+\texttt{exp9} (single-pipeline table), \texttt{exp10} (decomposition), \texttt{exp11} (frontier),
+\texttt{exp12} (seeded re-run). Audit and re-analysis: \texttt{bench/} ---
+\texttt{exp6\_fixed.py} (corrected baselines, validation $\lambda$, EWC arm),
+\texttt{ladder.py} (945 cells, zero failures), \texttt{kwta\_scale\_check.py},
+\texttt{gate\_probe.py}, \texttt{sig\_probe.py}, \texttt{analyze\_ei.py}. Rule-switching study:
+\texttt{dendrite-mve/} with preregistrations \texttt{prereg\_pr00\{1,2,3\}\_*.md} (amendments,
+corrections, result records) and raw per-seed JSONs (\texttt{results/}, \texttt{results\_cue/},
+\texttt{results\_cue\_adv/}). Every run \texttt{torch.manual\_seed}s before model construction;
+settings not stated in the text: $N=256$, $K=T$ segments ($8$, top-3, in the capped variant),
+kWTA $k=N/4$, Fisher/usage from 300/500 samples, five seeds (eight for the rule-switching study),
+one RTX 3090. Corrected-baseline runs total 80 cells; ladder and calibration runs 665 cells.
+
+%% ===========================================================================
+\section*{Acknowledgment}
+%% ===========================================================================
+The author used large language model tools (DeepSeek V4.1 and GLM) to draft and edit the English
+prose and to implement and verify the audit scripts under the author's direction. The experimental
+design, the defect diagnosis, and all scientific claims were made by the author, who takes full
+responsibility for the content of this article.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}
