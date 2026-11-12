@@ -1,0 +1,262 @@
+{
+  "name": "DeLP seven-rung ladder, joint gain x lambda (REAL per-seed records)",
+  "claim": "anti_forgetting",
+  "declared_significant": false,
+  "lambda_applied": true,
+  "n_seeds": 5,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "primary_comparison": [
+    "ad_usage",
+    "mlp_nosig"
+  ],
+  "effects": [
+    {
+      "step": "activation: kwta(sigmoid(t)) -> kwta(0.5t)",
+      "T": 5,
+      "kind": "architecture",
+      "primary": false,
+      "dacc": 12.026,
+      "p": 1e-05,
+      "dbwt": 2.7,
+      "p_bwt": 0.0005,
+      "n_pairs": 5
+    },
+    {
+      "step": "dendrite capacity alone (null control)",
+      "T": 5,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": 0.0,
+      "p": 1.0,
+      "dbwt": 0.0,
+      "p_bwt": 1.0,
+      "n_pairs": 5
+    },
+    {
+      "step": "context modulation",
+      "T": 5,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": -0.008,
+      "p": 0.9441,
+      "dbwt": 0.106,
+      "p_bwt": 0.030123,
+      "n_pairs": 5
+    },
+    {
+      "step": "branch protection",
+      "T": 5,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": -0.016,
+      "p": 0.630385,
+      "dbwt": 0.022,
+      "p_bwt": 0.434894,
+      "n_pairs": 5
+    },
+    {
+      "step": "usage-weighted Fisher",
+      "T": 5,
+      "kind": "mechanism",
+      "primary": true,
+      "dacc": -0.032,
+      "p": 0.761343,
+      "dbwt": -0.276,
+      "p_bwt": 0.02469,
+      "n_pairs": 5
+    },
+    {
+      "step": "proxy Fisher -> true-label CE Fisher",
+      "T": 5,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": 0.094,
+      "p": 0.254719,
+      "dbwt": -0.038,
+      "p_bwt": 0.308771,
+      "n_pairs": 5
+    },
+    {
+      "step": "activation: kwta(sigmoid(t)) -> kwta(0.5t)",
+      "T": 10,
+      "kind": "architecture",
+      "primary": false,
+      "dacc": 15.35,
+      "p": 5.7e-05,
+      "dbwt": 6.96,
+      "p_bwt": 4.2e-05,
+      "n_pairs": 5
+    },
+    {
+      "step": "dendrite capacity alone (null control)",
+      "T": 10,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": 0.0,
+      "p": 1.0,
+      "dbwt": 0.0,
+      "p_bwt": 1.0,
+      "n_pairs": 5
+    },
+    {
+      "step": "context modulation",
+      "T": 10,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": -0.178,
+      "p": 0.426154,
+      "dbwt": 0.06,
+      "p_bwt": 0.772475,
+      "n_pairs": 5
+    },
+    {
+      "step": "branch protection",
+      "T": 10,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": 0.03,
+      "p": 0.933024,
+      "dbwt": 0.112,
+      "p_bwt": 0.646461,
+      "n_pairs": 5
+    },
+    {
+      "step": "usage-weighted Fisher",
+      "T": 10,
+      "kind": "mechanism",
+      "primary": true,
+      "dacc": 0.224,
+      "p": 0.518566,
+      "dbwt": -0.166,
+      "p_bwt": 0.329714,
+      "n_pairs": 5
+    },
+    {
+      "step": "proxy Fisher -> true-label CE Fisher",
+      "T": 10,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": 0.158,
+      "p": 0.2709,
+      "dbwt": -0.342,
+      "p_bwt": 0.047018,
+      "n_pairs": 5
+    },
+    {
+      "step": "activation: kwta(sigmoid(t)) -> kwta(0.5t)",
+      "T": 20,
+      "kind": "architecture",
+      "primary": false,
+      "dacc": 12.76,
+      "p": 0.001156,
+      "dbwt": 2.708,
+      "p_bwt": 0.080591,
+      "n_pairs": 5
+    },
+    {
+      "step": "dendrite capacity alone (null control)",
+      "T": 20,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": 0.0,
+      "p": 1.0,
+      "dbwt": 0.0,
+      "p_bwt": 1.0,
+      "n_pairs": 5
+    },
+    {
+      "step": "context modulation",
+      "T": 20,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": -0.236,
+      "p": 0.83809,
+      "dbwt": 2.132,
+      "p_bwt": 0.121188,
+      "n_pairs": 5
+    },
+    {
+      "step": "branch protection",
+      "T": 20,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": 0.144,
+      "p": 0.846087,
+      "dbwt": 2.676,
+      "p_bwt": 0.022283,
+      "n_pairs": 5
+    },
+    {
+      "step": "usage-weighted Fisher",
+      "T": 20,
+      "kind": "mechanism",
+      "primary": true,
+      "dacc": 1.42,
+      "p": 0.040641,
+      "dbwt": -1.178,
+      "p_bwt": 0.032819,
+      "n_pairs": 5
+    },
+    {
+      "step": "proxy Fisher -> true-label CE Fisher",
+      "T": 20,
+      "kind": "mechanism",
+      "primary": false,
+      "dacc": 0.216,
+      "p": 0.60371,
+      "dbwt": 1.9,
+      "p_bwt": 0.003077,
+      "n_pairs": 5
+    }
+  ],
+  "ours_vs_control": [
+    {
+      "T": 5,
+      "dacc": -0.056,
+      "p": 0.500351
+    },
+    {
+      "T": 10,
+      "dacc": 0.076,
+      "p": 0.76076
+    },
+    {
+      "T": 20,
+      "dacc": 1.328,
+      "p": 0.18708
+    }
+  ],
+  "selfcheck": {
+    "pairs": 1185,
+    "passed": 1185,
+    "rule": "mlp_nosig == ad_nocx (full acc_matrix)"
+  },
+  "boundary": {
+    "gain_pinned": 0,
+    "lambda_pinned": 0,
+    "total": 21,
+    "gain_range": [
+      0.25,
+      1024.0
+    ],
+    "lambda_range": [
+      0.1,
+      100000.0
+    ]
+  },
+  "provenance": {
+    "source": "/mnt/mydisk/xinguan-dendritic/dendritic-lab/results_ladgain",
+    "n_files": 8295,
+    "n_cells": 1659,
+    "n_skipped": 0,
+    "recomputed_by": "bench/analyze_ladgain.py (load/select/t_paired)",
+    "cross_check_against": "bench/reports/ladgain2.md",
+    "note": "Effects are recomputed from the raw per-seed JSON held-out selection, NOT copied from the report."
+  }
+}

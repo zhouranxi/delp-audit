@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cl-audit"
+version = "0.2.0"
+description = "Six-gate pre-publication audit for continual-learning claims, with method adapters, CI fixture suite and archive verification"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Ranxi Zhou" }]
+keywords = ["continual learning", "reproducibility", "audit", "negative results"]
+# The six-gate checker deliberately has no runtime dependencies: it must be
+# runnable offline on a laptop with just the per-seed JSON files.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4,<9"]
+# Only needed to RE-RUN the original GPU experiments, not to audit their results.
+# Pinned ranges record what the audit was executed with; the standalone scripts in
+# dendritic-lab/ and dendrite-mve/ are not installed by `pip install -e .`.
+experiments = ["numpy>=1.24,<3", "scipy>=1.10,<2", "torch>=2.0"]
+
+[project.scripts]
+cl-audit = "cl_audit.cli:main"
+
+[project.urls]
+Repository = "https://github.com/zhouranxi/delp-audit"
+Preprint = "https://doi.org/10.5281/zenodo.23572226"
+
+[tool.setuptools]
+packages = ["cl_audit"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

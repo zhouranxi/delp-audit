@@ -6,3 +6,17 @@ __pycache__/
 .venv/
 venv/
 .ipynb_checkpoints/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# Generated reports at the repository root. The published evidence under
+# results/ladgain8295/ is intentionally NOT ignored.
+/ci-summary.md
+/cl-audit-report.md
+/cl-audit-report.json
+/cl-audit-budget.md
+/cl-audit-budget.json
+/budget-report.md
+/budget-report.json

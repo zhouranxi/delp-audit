@@ -1,5 +1,17 @@
 # DeLP 审计论文（DOI 10.5281/zenodo.23602281, arXiv v0.2）数据一致性审计 —— 最终版
 
+> **引用与口径注记（2026-11-12 补，不改下文任何数字）**
+> 标题中的 `10.5281/zenodo.23602281` 是**历史版本 DOI**，不应再作为当前记录的引用目标；
+> 请统一引用 concept DOI `10.5281/zenodo.23572226`，其现解析到 **version 3
+> (`10.5281/zenodo.24148873`)**，描述中载有 2026-11-11 的更正全文。
+> 本报告的核查对象是 v0.2 预印本**表格数字的来源一致性**（Table I–V、λ 选择规则），
+> 这些核查与下文数字仍然有效，且正是 `results_ei_main/sweep.json` 入库的依据。
+> 但 v0.2/v1 摘要中关于「唯一存活机制（usage weighting）」以及 `+1.79, p = 0.005`、
+> `+4 to +6 once gain-calibrated` 的**机制结论已撤回**：8295 格联合 gain × λ 重验后，
+> 唯一显著项仅出现在 T=20 且 dBWT 反向，全方法相对无树突对照三项均不显著。
+> 当前结论以仓库 README 顶部更正块、Zenodo v3 描述与
+> `results/ladgain8295/` 的六门报告为准。
+
 审计对象：D:/Download/DeLP_audit_v0.2_Zhou2026.pdf（7 页）
 数据源：github.com/zhouranxi/delp-audit + 学校服务器 10.10.52.210:/mnt/mydisk/xinguan-dendritic/
 审计日期：2026-10-27

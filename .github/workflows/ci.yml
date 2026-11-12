@@ -1,0 +1,50 @@
+name: cl-audit CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install the checker (stdlib only)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          cl-audit --help
+
+      - name: Offline regression suite (no GPU, no server data)
+        run: python -m unittest discover -s tests -v
+
+      - name: Byte-compile the installable package and tests
+        run: python -m compileall -q cl_audit tests
+
+      - name: Known-good and deliberately broken fixtures
+        run: python -m cl_audit.cli selftest
+
+      - name: Public-claims gate (README must match the final readings)
+        run: python -m unittest tests.test_readme_claims -v
+
+      - name: CI fixture suite (includes the non-DeLP adapter path)
+        run: python -m cl_audit.cli ci --out ci-summary.md
+
+      - name: Verify the shipped 8295-cell archive (8295 SHA256 hashes, in memory)
+        run: python -m cl_audit.cli verify results/ladgain8295
+
+      - name: Upload CI summary
+        if: matrix.python-version == '3.13'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cl-audit-ci-summary
+          path: ci-summary.md

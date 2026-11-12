@@ -1,0 +1,235 @@
+{
+  "tool": "cl-audit",
+  "name": "DeLP seven-rung ladder, joint gain x lambda (REAL per-seed records)",
+  "n_records": 8295,
+  "notes": [],
+  "summary": {
+    "PASS": 3,
+    "WARN": 3,
+    "FAIL": 0,
+    "SKIP": 0
+  },
+  "results": [
+    {
+      "gate": "G1",
+      "title": "Declaration-implementation consistency",
+      "status": "PASS",
+      "detail": "Checked: lambda_applied, n_seeds, selfcheck.",
+      "evidence": {
+        "lambda_flat_groups": [],
+        "seeds": {
+          "declared": 5,
+          "observed": 5
+        },
+        "selfcheck": {
+          "pairs": 1185,
+          "passed": 1185,
+          "rule": "mlp_nosig == ad_nocx (full acc_matrix)"
+        }
+      }
+    },
+    {
+      "gate": "G2",
+      "title": "Tuning fairness (joint optimum not grid-pinned)",
+      "status": "PASS",
+      "detail": "0/21 joint (gain, lambda) optima pinned; manifest cross-check OK. 113/420 one-dimensional slices are edge-pinned (expected in a 2-D grid; the joint optimum decides truncation).",
+      "evidence": {
+        "joint": {
+          "n_joint": 21,
+          "n_gain_pinned": 0,
+          "n_lam_pinned": 0,
+          "metric_used": "val_final_avg",
+          "gain_range": [
+            0.25,
+            1024.0
+          ],
+          "lambda_range": [
+            0.1,
+            100000.0
+          ],
+          "pinned": []
+        },
+        "slices": {
+          "n_checked": 420,
+          "n_pinned": 113,
+          "note": "1-D slice optima; edge-pinned slices are expected in a 2-D grid and do not by themselves truncate the joint optimum"
+        },
+        "declared_boundary": {
+          "gain_pinned": 0,
+          "lambda_pinned": 0,
+          "total": 21,
+          "gain_range": [
+            0.25,
+            1024.0
+          ],
+          "lambda_range": [
+            0.1,
+            100000.0
+          ]
+        }
+      }
+    },
+    {
+      "gate": "G3",
+      "title": "Baseline protocol parity",
+      "status": "PASS",
+      "detail": "7 arms share identical (T, gain, lambda) cells and seed counts.",
+      "evidence": {
+        "arms": [
+          "ad_ctx",
+          "ad_nocx",
+          "ad_prot",
+          "ad_usage",
+          "ad_usage_ce",
+          "mlp_ewc",
+          "mlp_nosig"
+        ],
+        "n_cells": {
+          "ad_ctx": 237,
+          "ad_nocx": 237,
+          "ad_prot": 237,
+          "ad_usage_ce": 237,
+          "ad_usage": 237,
+          "mlp_ewc": 237,
+          "mlp_nosig": 237
+        },
+        "seed_counts": {
+          "ad_ctx": [
+            5
+          ],
+          "ad_nocx": [
+            5
+          ],
+          "ad_prot": [
+            5
+          ],
+          "ad_usage_ce": [
+            5
+          ],
+          "ad_usage": [
+            5
+          ],
+          "mlp_ewc": [
+            5
+          ],
+          "mlp_nosig": [
+            5
+          ]
+        },
+        "issues": []
+      }
+    },
+    {
+      "gate": "G4",
+      "title": "Statistical validity of the headline claim",
+      "status": "WARN",
+      "detail": "Only 1/3 comparisons are significant; the effect is not stable across task horizons. Report per-horizon results.",
+      "evidence": {
+        "measured": [
+          {
+            "T": 5,
+            "dacc": -0.032,
+            "p": 0.761343,
+            "source": "effects"
+          },
+          {
+            "T": 10,
+            "dacc": 0.224,
+            "p": 0.518566,
+            "source": "effects"
+          },
+          {
+            "T": 20,
+            "dacc": 1.42,
+            "p": 0.040641,
+            "source": "effects"
+          }
+        ],
+        "ours_vs_control": [
+          {
+            "T": 5,
+            "dacc": -0.056,
+            "p": 0.500351
+          },
+          {
+            "T": 10,
+            "dacc": 0.076,
+            "p": 0.76076
+          },
+          {
+            "T": 20,
+            "dacc": 1.328,
+            "p": 0.18708
+          }
+        ],
+        "n_significant": 1,
+        "n_comparisons": 3,
+        "control_verdict": "no significant net advantage over the dendrite-free control"
+      }
+    },
+    {
+      "gate": "G5",
+      "title": "Forgetting direction (BWT)",
+      "status": "WARN",
+      "detail": "Accuracy improves but BWT gets worse (dBWT=-1.18, p=0.032819). This cannot be described as an anti-forgetting mechanism.",
+      "evidence": {
+        "significant_primary": [
+          {
+            "step": "usage-weighted Fisher",
+            "T": 20,
+            "kind": "mechanism",
+            "primary": true,
+            "dacc": 1.42,
+            "p": 0.040641,
+            "dbwt": -1.178,
+            "p_bwt": 0.032819,
+            "n_pairs": 5
+          }
+        ],
+        "conflicts": [
+          {
+            "step": "usage-weighted Fisher",
+            "T": 20,
+            "kind": "mechanism",
+            "primary": true,
+            "dacc": 1.42,
+            "p": 0.040641,
+            "dbwt": -1.178,
+            "p_bwt": 0.032819,
+            "n_pairs": 5
+          }
+        ]
+      }
+    },
+    {
+      "gate": "G6",
+      "title": "Mechanism attribution",
+      "status": "WARN",
+      "detail": "The largest effect is architectural (activation: kwta(sigmoid(t)) -> kwta(0.5t): +15.35 points), not a protection mechanism (largest mechanism step: +1.42). The gain cannot be attributed to the method.",
+      "evidence": {
+        "largest_architectural": {
+          "step": "activation: kwta(sigmoid(t)) -> kwta(0.5t)",
+          "T": 10,
+          "kind": "architecture",
+          "primary": false,
+          "dacc": 15.35,
+          "p": 5.7e-05,
+          "dbwt": 6.96,
+          "p_bwt": 4.2e-05,
+          "n_pairs": 5
+        },
+        "largest_mechanism": {
+          "step": "usage-weighted Fisher",
+          "T": 20,
+          "kind": "mechanism",
+          "primary": true,
+          "dacc": 1.42,
+          "p": 0.040641,
+          "dbwt": -1.178,
+          "p_bwt": 0.032819,
+          "n_pairs": 5
+        }
+      }
+    }
+  ]
+}
