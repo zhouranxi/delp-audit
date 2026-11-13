@@ -6,7 +6,10 @@ on:
 
 jobs:
   core:
-    runs-on: ubuntu-latest
+    # Pinned: `ubuntu-latest` now resolves to Ubuntu 26.04, for which
+    # actions/python-versions ships no Python 3.9 build (3.9.25 stops at 24.04).
+    # Pinning to 24.04 keeps the declared 3.9 / 3.11 / 3.13 matrix runnable.
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
